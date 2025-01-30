@@ -1,9 +1,9 @@
 # World of Warcraft Guild Website
 
-> [!CAUTION] Внимание!
+> [!CAUTION]
 > NGINX не стартует без BACKEND
 
->[!CAUTION] Внимание!
+>[!CAUTION]
 > Создайте сеть `docker network create wowguild`
 
 ## Nginx
@@ -19,7 +19,7 @@
 `sudo certbot --nginx`  
 
 Теперь нам нужно переместить серсетфикаты в папку проекта  
-> [!CAUTION] Внимание!
+> [!CAUTION]
 > Обратите внимание что сертефикаты копируем в папку ./certs значит выполняя эти команды копирования сертефикатов вам нужно находиться в каталоге FRONTEND/nginx
 ```bash
 sudo cp /etc/letsencrypt/options-ssl-nginx.conf ./certs
@@ -52,7 +52,8 @@ server {
     }
 ```
 
->[!NOTE] ЗАПУСК NGINX
+>[!NOTE]
+>ЗАПУСК NGINX  
 >Если сертвефикаты для SSL получены https   
 >`docker compose up --build -d frontendSSL`  
 >Запуск без сертвефикатов SSL http  
@@ -70,7 +71,8 @@ server {
 Можно так же установить pgAdmin4  
 `docker compose up --build -d pgadmin`
 
->[!NOTE] ЗАПУСК POSTGRES
+>[!NOTE]
+>ЗАПУСК POSTGRES  
 >`docker compose up --build -d postgres` 
 
 ## BACKEND ( API + Updater)
@@ -90,7 +92,8 @@ environment:
       DB_ADDRESS: yanlex-wow-guild-postgres
       HOST_DB_PORT: 5432
 ```
->[!NOTE] ЗАПУСК BACKEND ( API + Updater)
+>[!NOTE]
+> ЗАПУСК BACKEND ( API + Updater)  
 `docker compose up --build -d backend`
 
 ## FRONTEND
