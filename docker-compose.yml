@@ -1,0 +1,93 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: "yanlex-wow-guild-postgres"
+    volumes:
+     - yanlex-wow-guild-postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: user-name
+      POSTGRES_PASSWORD: strong-password
+    ports:
+      - "5432:5432"
+    networks:
+      - wowguild
+      
+  frontendSSL:
+    image: nginx:stable
+    container_name: "yanlex-wow-guild-front-nginx"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./FRONTEND/nginx/nginxSSL.conf:/etc/nginx/nginx.conf
+      - ./FRONTEND/nginx/certs:/etc/nginx/certs/
+      - ./FRONTEND/nginx/index.html:/var/www/dist/index.html
+      - ./FRONTEND/public_html:/var/www/dist/kvd
+    networks:
+      - wowguild
+
+  frontendNoSSL:
+    image: nginx:stable
+    container_name: "yanlex-wow-guild-front-nginx"
+    depends_on:
+      yanlex-wow-guild-updater:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./FRONTEND/nginx/nginxNoSSL.conf:/etc/nginx/nginx.conf
+      - ./FRONTEND/nginx/index.html:/var/www/dist/index.html
+      - ./FRONTEND/public_html:/var/www/dist/kvd
+    networks:
+      - wowguild
+
+  backend:
+    build:
+      context: ./BACKEND/
+      dockerfile: backend.Dockerfile
+    image: yanlex-wow-guild-updater:latest
+    container_name: "yanlex-wow-guild-updater"
+    volumes:
+     - yanlex-wow-guild-db-updater:/root/KVD/
+    environment:
+      DB_NAME: kvd_guild
+      GUILD_REGION: eu
+      GUILD_REALM: howling-fjord
+      GUILD_NAME: "Ключик в дурку"
+      DB_USER: user-name
+      DB_PASS: strong-password
+      DB_NETWORK: wowguild
+      DB_ADDRESS: yanlex-wow-guild-postgres
+      HOST_DB_PORT: 5432
+    ports:
+      - "3000:3000"
+    networks:
+      - wowguild
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=your_email@example.com
+      - PGADMIN_DEFAULT_PASSWORD=your_password
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "8666:80"
+    networks:
+      - wowguild
+
+volumes:
+  yanlex-wow-guild-front-nginx:
+    name: yanlex-wow-guild-front-nginx
+  yanlex-wow-guild-db-updater:
+    name: yanlex-wow-guild-db-updater
+  yanlex-wow-guild-postgres:
+    name: yanlex-wow-guild-postgres
+  pgadmin-data:
+    name: pgadmin-data
+
+networks:
+  wowguild:
+    driver: bridge
+    external: true
+    name: wowguild
