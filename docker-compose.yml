@@ -29,9 +29,6 @@ services:
   frontendNoSSL:
     image: nginx:stable
     container_name: "yanlex-wow-guild-front-nginx"
-    depends_on:
-      yanlex-wow-guild-updater:
-        condition: service_started
     ports:
       - "80:80"
       - "443:443"

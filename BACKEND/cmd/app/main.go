@@ -26,7 +26,7 @@ func init() {
 	est, err := time.LoadLocation("Europe/Moscow")
 	if err != nil {
 		// Логирование ошибки вместо паники
-		log.Printf("Ошибка загрзуки региона: %v", err)
+		log.Printf("Ошибка загрузки региона: %v", err)
 		return
 	}
 
@@ -57,7 +57,7 @@ func main() {
 
 	<-timerDeploy
 	deploy.Deploy()
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	go update.UpdateAllPlayers()
 	log.Println("Backend запущен")
 	time.Sleep(2 * time.Second)

@@ -17,14 +17,14 @@ import (
 )
 
 var (
-	foldierPath string
+	folderPath  string
 	playerClass string
 	homeDir     string
 	err         error
 )
 
-// Функция создания папки в домашнем каталоге, так же нужна для опредления пути до папки куда сохраняем аватарки игроков.
-func makeNewFoldier() {
+// Функция создания папки в домашнем каталоге, так же нужна для определения пути до папки куда сохраняем аватарки игроков.
+func makeNewFolder() {
 	// Получаем домашний каталог
 	homeDir, err = os.UserHomeDir()
 	if err != nil {
@@ -32,23 +32,23 @@ func makeNewFoldier() {
 	}
 
 	// Название папки
-	foldierName := "assets/thumbnail"
+	folderName := "assets/thumbnail"
 
 	// Пусть к папке
-	foldierPath = filepath.Join(homeDir, foldierName)
+	folderPath = filepath.Join(homeDir, folderName)
 	playerClass = filepath.Join(homeDir, "assets/class")
 
 	// Проверяем существует ли папка
 	// os.Stat(foldierPath) проверяет есть ли папка и в err возвращает true если есть
-	if _, err := os.Stat(foldierPath); os.IsNotExist(err) {
+	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
 		// Папка не существует, создаем
-		err = os.MkdirAll(foldierPath, 0755)
+		err = os.MkdirAll(folderPath, 0755)
 		if err != nil {
 			fmt.Println("Ошибка при создании папки", err)
 		}
-		fmt.Println("Папка успешно создана", foldierPath)
+		fmt.Println("Папка успешно создана", folderPath)
 	} else {
-		fmt.Println("Папка сущестует:", foldierPath)
+		fmt.Println("Папка сущестует:", folderPath)
 	}
 }
 
@@ -109,12 +109,13 @@ func enableCORS(next http.Handler) http.Handler {
 
 func Api() {
 	//Пробуем создать папку
-	makeNewFoldier()
+	makeNewFolder()
 
 	go func() {
 		for {
-			d.DownloadThumbnail(foldierPath)
-			time.Sleep(180 * time.Minute)
+			time.Sleep(1 * time.Minute)
+			d.DownloadThumbnail(folderPath)
+			time.Sleep(360 * time.Minute)
 		}
 	}()
 
@@ -125,7 +126,7 @@ func Api() {
 	mux := http.NewServeMux()
 
 	// Папка с аватарками jpg
-	playerAvatars := http.FileServer(http.Dir(foldierPath))
+	playerAvatars := http.FileServer(http.Dir(folderPath))
 	// Папка с классами jpg
 	playerClass := http.FileServer(http.Dir(playerClass))
 	/*

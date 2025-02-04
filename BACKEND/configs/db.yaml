@@ -1,9 +1,0 @@
-# Конфигурация приложения wow-guild-website
-guild:
-  raiderio_api_url: "https://raider.io/api/v1/guilds/profile?region=${GUILD_REGION}&realm=${GUILD_REALM}&name=${GUILD_NAME}&fields=members"
-db:
-  url: "postgres://${DB_USER}:${DB_PASSWORD}@yanlex-wow-guild-postgres:5432"
-  urlKvd: "postgres://${DB_USER}:${DB_PASSWORD}@yanlex-wow-guild-postgres:5432/kvd_guild"
-dbCreateStructure:
-  dbName: "kvd_guild"
-#done
