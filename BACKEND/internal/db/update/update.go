@@ -64,7 +64,7 @@ func UpdateAllPlayers() {
 	ctx := context.Background()
 
 	// Подключаемся к БД
-	db := db.NewPostgreSQL(dbPort, dbUser, dbPassword, dbhost, dbName)
+	var db db.Database = db.NewPostgreSQL(dbPort, dbUser, dbPassword, dbhost, dbName)
 	err := db.Connect(ctx)
 	if err != nil {
 		log.Println(err)
@@ -221,7 +221,7 @@ func UpdateAllPlayers() {
 }
 
 // Добавляем игрока в базу данных
-func insertObject(ctx context.Context, p apiPlayer, db *db.PostgreSQL, logger *log.Logger) {
+func insertObject(ctx context.Context, p apiPlayer, db db.Database, logger *log.Logger) {
 	// Вставка данных в таблицу members
 	err := db.Exec(ctx, `
         INSERT INTO members (rank, name, guild, realm, race, class, gender, faction, achievement_points, profile_url, profile_banner, created_at)

@@ -12,10 +12,11 @@ import (
 )
 
 type Database interface {
-	Connect() *pgxpool.Pool
+	Connect(ctx context.Context) error
 	Disconnect() error
-	Query(query string) ([]string, error)
-	Exec(query string) error
+	Query(context.Context, string) (pgx.Rows, error)
+	Exec(context.Context, string, ...interface{}) error
+	QueryRow(context.Context, string) (bool, error)
 }
 
 type PostgreSQL struct {
@@ -33,21 +34,18 @@ func (db *PostgreSQL) Connect(ctx context.Context) error {
 	defer cancel()
 
 	if db.pool != nil {
-		fmt.Println("Не удалось создать пул подключений к Postgres или пул уже создан.")
-		return err
+		return fmt.Errorf("пул уже создан")
 	}
 
 	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", db.User, db.Password, db.Host, db.Port, db.DBName)
 	db.pool, err = pgxpool.New(ctx, dbUrl)
 	if err != nil {
-		log.Printf("Ошибка при попытке создать пул БД: %s\n", err)
-		return err
+		return fmt.Errorf("ошибка при попытке создать пул БД: %w", err)
 	}
 
 	err = db.pool.Ping(ctx)
 	if err != nil {
-		log.Printf("Ошибка при проверке соединения с БД: %s\n", err)
-		return err
+		return fmt.Errorf("ошибка при проверке соединения с БД: %w", err)
 	} else {
 		log.Printf("Подключение к PostgreSQL успешно установленно.")
 	}
