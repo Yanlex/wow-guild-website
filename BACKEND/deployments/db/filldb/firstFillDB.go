@@ -8,6 +8,7 @@ import (
 	"fmt"
 	fetch "kvd/internal/api/raiderio"
 	"kvd/internal/db"
+	"kvd/internal/db/update"
 	"log"
 	"os"
 	"sync"
@@ -15,7 +16,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-var err error
 var ctx = context.Background()
 var (
 	dbUser, dbPassword, dbName, dbhost, dbPort string
@@ -44,8 +44,8 @@ type Player struct {
 	profileBanner     string
 }
 
+// Создаем столбцы в таблице GUILD и заполняем их с API
 func FirstFillDB() {
-
 	// Подключаемся к БД
 	db := db.NewPostgreSQL(dbPort, dbUser, dbPassword, dbhost, dbName)
 	err := db.Connect(ctx)
@@ -107,13 +107,13 @@ func FirstFillDB() {
 			logger.Printf("Ошибка, не удалось вставить данные: %v\n", err)
 			log.Printf("Ошибка, не удалось вставить данные: %v\n", err)
 		}
-		defer log.Println("Таблица гильдии заполнена")
-	} else {
-		log.Println("Таблица гильдии уже существует, идем дальше")
+		defer log.Println("Добавлены столбцы в таблицу Guild")
 	}
 	defer fillPlayers(resp, file, db, logger)
+	// defer file.Close()
 }
 
+// Создаем столбцы в таблице MEMBERS и заполняем их базовой информацией с API
 func fillPlayers(resp string, file *os.File, db *db.PostgreSQL, logger *log.Logger) {
 
 	totalMembers := gjson.Get(resp, "members.#")
@@ -203,12 +203,12 @@ func fillPlayers(resp string, file *os.File, db *db.PostgreSQL, logger *log.Logg
 		defer log.Println("Похоже в БД уже есть данные об игроках, идем дальше.")
 	}
 	defer file.Close()
+	defer update.UpdateAllPlayers()
 }
 
 func insertObject(ctx context.Context, p Player, db *db.PostgreSQL) {
-	// ctx := context.Background()
 	// Вставка данных в таблицу members
-	err = db.Exec(ctx, `
+	err := db.Exec(ctx, `
         INSERT INTO members (rank, name, guild, realm, race, class, gender, faction, achievement_points, profile_url, profile_banner, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP)
     `, p.rank, p.name, p.guild, p.realm, p.race, p.class, p.gender, p.faction, p.achievementPoints, p.profileURL, p.profileBanner)

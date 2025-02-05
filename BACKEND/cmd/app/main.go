@@ -58,7 +58,6 @@ func main() {
 	<-timerDeploy
 	deploy.Deploy()
 	time.Sleep(2 * time.Second)
-	go update.UpdateAllPlayers()
 	log.Println("Backend запущен")
 	time.Sleep(2 * time.Second)
 	go a.Api()
