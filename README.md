@@ -10,28 +10,16 @@
 
 ### Если нужен https:// Nginx + SSL
 
-Нужно сначала полчить сертефикаты, мы будем использовать CERTBOT
+в docker-compose.yml указать свой домен и реальную почту  
+`- --certificatesresolvers.leresolver.acme.email=<< ВАШ ЕМЕЙЛ >>`  
+`- "traefik.http.routers.nginx.rule=Host(`<<< ВАШЕ ДОМЕННОЕ ИМЯ >>>`)"`  
 
-Установите Certbot и необходимые зависимости:  
-`sudo apt install certbot python3-certbot-nginx`  
-
-Для получения SSL-сертификата выполните команду:  
-`sudo certbot --nginx`  
-
-Теперь нам нужно переместить серсетфикаты в папку проекта  
-> [!CAUTION]
-> Обратите внимание что сертефикаты копируем в папку ./certs значит выполняя эти команды копирования сертефикатов вам нужно находиться в каталоге FRONTEND/nginx
-```bash
-sudo cp /etc/letsencrypt/options-ssl-nginx.conf ./certs
-sudo cp /etc/letsencrypt/ssl-dhparams.pem ./certs
-sudo cp /etc/letsencrypt/live/sanyadev.ru/fullchain.pem ./certs
-sudo cp /etc/letsencrypt/live/sanyadev.ru/privkey.pem ./certs
-```
+`docker compose up --build -d traefik`  
 
 #### Основные настройки NGINX
 
 Настройки вашего http сервера 
-`nginxSSL.conf` и `nginxNoSSL.conf`
+`nginx.conf`
 
 Эта строка отвечает за сервер nginx, если в docker файле не меняли названия ее менять не нужно  
 ` add_header 'Access-Control-Allow-Origin' 'http://yanlex-wow-guild-front-nginx';`
@@ -53,11 +41,8 @@ server {
 ```
 
 >[!NOTE]
->ЗАПУСК NGINX  
->Если сертвефикаты для SSL получены https   
->`docker compose up --build -d frontendSSL`  
->Запуск без сертвефикатов SSL http  
->`docker compose up --build -d frontendNoSSL`
+>ЗАПУСК NGINX    
+>`docker compose up --build -d frontend`
 
 ## Postgres
 

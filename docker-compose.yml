@@ -3,7 +3,7 @@ services:
     image: postgres:latest
     container_name: "yanlex-wow-guild-postgres"
     volumes:
-     - yanlex-wow-guild-postgres:/var/lib/postgresql/data
+      - yanlex-wow-guild-postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: user-name
       POSTGRES_PASSWORD: strong-password
@@ -11,31 +11,43 @@ services:
       - "5432:5432"
     networks:
       - wowguild
-      
-  frontendSSL:
+
+  frontend:
     image: nginx:stable
     container_name: "yanlex-wow-guild-front-nginx"
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./FRONTEND/nginx/nginxSSL.conf:/etc/nginx/nginx.conf
-      - ./FRONTEND/nginx/certs:/etc/nginx/certs/
+      - ./FRONTEND/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./FRONTEND/nginx/index.html:/var/www/dist/index.html
       - ./FRONTEND/public_html:/var/www/dist/kvd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx.rule=Host(`<<< ВАШЕ ДОМЕННОЕ ИМЯ >>>`)"
+      - "traefik.http.routers.nginx.entrypoints=websecure"
+      - "traefik.http.routers.nginx.tls.certresolver=leresolver"
     networks:
       - wowguild
 
-  frontendNoSSL:
-    image: nginx:stable
-    container_name: "yanlex-wow-guild-front-nginx"
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./FRONTEND/nginx/nginxNoSSL.conf:/etc/nginx/nginx.conf
-      - ./FRONTEND/nginx/index.html:/var/www/dist/index.html
-      - ./FRONTEND/public_html:/var/www/dist/kvd
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik-data:/etc/traefik
+      - ./traefik-data/acme.json:/acme.json
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.leresolver.acme.email=<< ВАШ ЕМЕЙЛ >>
+      - --certificatesresolvers.leresolver.acme.storage=/acme.json
+      - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
     networks:
       - wowguild
 
@@ -46,7 +58,7 @@ services:
     image: yanlex-wow-guild-updater:latest
     container_name: "yanlex-wow-guild-updater"
     volumes:
-     - yanlex-wow-guild-db-updater:/root/KVD/
+      - yanlex-wow-guild-db-updater:/root/KVD/
     environment:
       DB_NAME: kvd_guild
       GUILD_REGION: eu
