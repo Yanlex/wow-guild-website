@@ -39,7 +39,6 @@ func DownloadThumbnail(foldierPath string) {
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Ошибка подключения к БД", err)
-		return
 	}
 	defer db.Close()
 
@@ -47,14 +46,12 @@ func DownloadThumbnail(foldierPath string) {
 	err = db.Ping()
 	if err != nil {
 		log.Println("Ошибка проверке подключения к БД", err)
-		return
 	}
 
 	// Выполняем запрос
 	rows, err := db.Query("SELECT name, thumbnail_url FROM members")
 	if err != nil {
 		log.Println("Ошибка выполнения запроса к БД", err)
-		return
 	}
 	defer rows.Close()
 
@@ -66,7 +63,6 @@ func DownloadThumbnail(foldierPath string) {
 		err = rows.Scan(&player.name, &player.thumbnail_url)
 		if err != nil {
 			log.Println("Ошибка обработчика запроса в БД", err)
-			return
 		}
 
 		// Исключаем ники с цифрами, их невозможно использовать в запросе к сторонним апи.
@@ -79,7 +75,6 @@ func DownloadThumbnail(foldierPath string) {
 	// Проверяем наличие ошибок после завершения цикла
 	if err := rows.Err(); err != nil {
 		log.Println("Ошибка при обработке результата из БД", err)
-		return
 	}
 
 	for player, thumb := range players {
@@ -103,7 +98,6 @@ func DownloadThumbnail(foldierPath string) {
 				resp, err := http.Get(url)
 				if err != nil {
 					log.Println("Ошибка получения картинки", err)
-					return
 				}
 				defer resp.Body.Close()
 
@@ -115,7 +109,6 @@ func DownloadThumbnail(foldierPath string) {
 				file, err := os.Create(filePath)
 				if err != nil {
 					fmt.Println("Ошибка при создании файла:", err)
-					return
 				}
 				defer file.Close()
 
@@ -123,13 +116,11 @@ func DownloadThumbnail(foldierPath string) {
 				_, err = io.Copy(file, resp.Body)
 				if err != nil {
 					fmt.Println("Ошибка при записи файла:", err)
-					return
 				}
 				newImgCount++
 			} else {
 				// Другая ошибка
 				fmt.Println("Ошибка при проверке существования файла:", err)
-				return
 			}
 
 			time.Sleep(5 * time.Second)
