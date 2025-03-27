@@ -103,6 +103,7 @@ func DownloadThumbnail(foldierPath string) {
 				resp, err := http.Get(url)
 				if err != nil {
 					log.Println("Ошибка получения картинки", err)
+					return
 				}
 				defer resp.Body.Close()
 
@@ -131,7 +132,7 @@ func DownloadThumbnail(foldierPath string) {
 				return
 			}
 
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(5 * time.Second)
 		}
 	}
 
