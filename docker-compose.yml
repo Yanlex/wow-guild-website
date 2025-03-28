@@ -62,7 +62,7 @@ services:
     image: yanlex-wow-guild-updater:latest
     container_name: "yanlex-wow-guild-updater"
     volumes:
-      - yanlex-wow-guild-db-updater:/root/KVD/
+      - ${HOME}/kvd:/root/kvd/
     environment:
       DB_NAME: kvd_guild
       GUILD_REGION: eu
@@ -86,8 +86,6 @@ services:
 volumes:
   yanlex-wow-guild-front-nginx:
     name: yanlex-wow-guild-front-nginx
-  yanlex-wow-guild-db-updater:
-    name: yanlex-wow-guild-db-updater
   yanlex-wow-guild-postgres:
     name: yanlex-wow-guild-postgres
 

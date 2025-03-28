@@ -84,7 +84,6 @@ func dbBuild() {
 		log.Printf("БД: %s уже существует\n", dbName)
 	}
 	createTable()
-	defer filldb.FirstFillDB()
 }
 
 func createTable() {
@@ -134,4 +133,5 @@ func createTable() {
 	} else {
 		log.Printf("Таблица успешно создана\n")
 	}
+	defer filldb.FirstFillDB()
 }
