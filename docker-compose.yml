@@ -5,8 +5,8 @@ services:
     volumes:
       - yanlex-wow-guild-postgres:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: user-name
-      POSTGRES_PASSWORD: strong-password
+      POSTGRES_USER: user-db
+      POSTGRES_PASSWORD: user-pw
     labels:
       - traefik.enable=true
       - traefik.tcp.routers.postgresql.rule=HostSNI(`*`)
@@ -16,7 +16,6 @@ services:
       - traefik.tcp.routers.postgresql.tls.certresolver=letsencrypt
     networks:
       - wowguild
-
   frontend:
     image: nginx:stable
     container_name: "yanlex-wow-guild-front-nginx"
@@ -29,18 +28,18 @@ services:
       - ./FRONTEND/public_html:/var/www/dist/kvd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nginx.rule=Host(`<<< ВАШЕ ДОМЕННОЕ ИМЯ >>>`)"
+      - "traefik.http.routers.nginx.rule=Host(`DOMAIN NAME`)"
       - "traefik.http.routers.nginx.entrypoints=websecure"
       - "traefik.http.routers.nginx.tls.certresolver=leresolver"
     networks:
       - wowguild
-
   traefik:
     image: traefik:v3.3
     container_name: traefik
     ports:
       - "80:80"
       - "443:443"
+      - "5432:5432"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik-data:/etc/traefik
@@ -50,12 +49,12 @@ services:
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.leresolver.acme.email=<< ВАШ ЕМЕЙЛ >>
+      - --entrypoints.dbsecure.address=:5432
+      - --certificatesresolvers.leresolver.acme.email=YOUR EMAIL
       - --certificatesresolvers.leresolver.acme.storage=/acme.json
       - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
     networks:
       - wowguild
-
   backend:
     build:
       context: ./BACKEND/
@@ -69,29 +68,18 @@ services:
       GUILD_REGION: eu
       GUILD_REALM: howling-fjord
       GUILD_NAME: "Ключик в дурку"
-      DB_USER: user-name
-      DB_PASS: strong-password
+      DB_USER: user-db
+      DB_PASS: user-pw
       DB_NETWORK: wowguild
       DB_ADDRESS: yanlex-wow-guild-postgres
       HOST_DB_PORT: 5432
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`YOUR DOMAIN NAME`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.rule=Host(`YOUR DOMAIN`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=leresolver"
       - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
-    networks:
-      - wowguild
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=your_email@example.com
-      - PGADMIN_DEFAULT_PASSWORD=your_password
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    ports:
-      - "8666:80"
     networks:
       - wowguild
 
@@ -102,8 +90,6 @@ volumes:
     name: yanlex-wow-guild-db-updater
   yanlex-wow-guild-postgres:
     name: yanlex-wow-guild-postgres
-  pgadmin-data:
-    name: pgadmin-data
 
 networks:
   wowguild:
