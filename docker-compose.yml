@@ -7,8 +7,13 @@ services:
     environment:
       POSTGRES_USER: user-name
       POSTGRES_PASSWORD: strong-password
-    ports:
-      - "5432:5432"
+    labels:
+      - traefik.enable=true
+      - traefik.tcp.routers.postgresql.rule=HostSNI(`*`)
+      - traefik.tcp.routers.postgresql.tls=true
+      - traefik.tcp.services.postgresql.loadbalancer.server.port=5432
+      - traefik.tcp.routers.postgresql.entrypoints=dbsecure
+      - traefik.tcp.routers.postgresql.tls.certresolver=letsencrypt
     networks:
       - wowguild
 
@@ -69,8 +74,13 @@ services:
       DB_NETWORK: wowguild
       DB_ADDRESS: yanlex-wow-guild-postgres
       HOST_DB_PORT: 5432
-    ports:
-      - "3000:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`YOUR DOMAIN NAME`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=leresolver"
+      - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
     networks:
       - wowguild
   pgadmin:
