@@ -20,7 +20,7 @@ func tryFetchRio(url string) (*http.Response, error) {
 		if err == nil && resp.StatusCode == http.StatusOK {
 			return resp, nil
 		}
-		log.Println("Ошибка при запросе к API, повторная попытка через 5 минут", url, err)
+		log.Println("tryFetchRio, Ошибка при запросе к API, повторная попытка через 5 минут", url, err)
 		time.Sleep(5 * time.Minute)
 	}
 }
@@ -49,7 +49,7 @@ func MemberRio(guildRegion, encodedPlayerRealm, encodedName string) (string, err
 		} else {
 			defer resp.Body.Close()
 		}
-		log.Println("Ошибка при запросе к API, повторная попытка через 5 минут", url, err)
+		log.Println("MemberRio, Ошибка при запросе к API, повторная попытка через 5 минут", url, err)
 		time.Sleep(5 * time.Minute)
 	}
 }

@@ -13,7 +13,6 @@ RUN go mod download
 # Копируем проект
 COPY assets/class /root/assets/class
 COPY cmd ./cmd
-COPY configs ./configs
 COPY deployments ./deployments
 COPY internal ./internal
 

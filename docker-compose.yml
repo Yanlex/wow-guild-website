@@ -1,96 +1,102 @@
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:15-alpine
     container_name: "yanlex-wow-guild-postgres"
     volumes:
       - yanlex-wow-guild-postgres:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: user-db
-      POSTGRES_PASSWORD: user-pw
-    labels:
-      - traefik.enable=true
-      - traefik.tcp.routers.postgresql.rule=HostSNI(`*`)
-      - traefik.tcp.routers.postgresql.tls=true
-      - traefik.tcp.services.postgresql.loadbalancer.server.port=5432
-      - traefik.tcp.routers.postgresql.entrypoints=dbsecure
-      - traefik.tcp.routers.postgresql.tls.certresolver=letsencrypt
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 6iuJEswxv
+      POSTGRES_DB: kvd_guild
+    expose:
+      - 5432
     networks:
       - wowguild
-  frontend:
-    image: nginx:stable
-    container_name: "yanlex-wow-guild-front-nginx"
+
+  adminer:
+    image: adminer
+    container_name: "yanlex-wow-guild-adminer"
+    networks:
+      - wowguild
+      - traefik-public
     ports:
-      - "80:80"
-      - "443:443"
+      - 8080:8080
+
+  frontend:
+    image: nginx:1.25-alpine
+    container_name: "yanlex-wow-guild-front-nginx"
     volumes:
       - ./FRONTEND/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./FRONTEND/nginx/index.html:/var/www/dist/index.html
       - ./FRONTEND/public_html:/var/www/dist/kvd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nginx.rule=Host(`DOMAIN NAME`)"
-      - "traefik.http.routers.nginx.entrypoints=websecure"
-      - "traefik.http.routers.nginx.tls.certresolver=leresolver"
+      - "traefik.http.routers.frontend.rule=Host(`sanyadev.ru`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=le"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
     networks:
       - wowguild
+      - traefik-public
+
   traefik:
     image: traefik:v3.3
     container_name: traefik
     ports:
       - "80:80"
       - "443:443"
-      - "5432:5432"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./traefik-data:/etc/traefik
-      - ./traefik-data/acme.json:/acme.json
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     command:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-      - --entrypoints.dbsecure.address=:5432
-      - --certificatesresolvers.leresolver.acme.email=YOUR EMAIL
-      - --certificatesresolvers.leresolver.acme.storage=/acme.json
-      - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.le.acme.email=takashi21@yandex.ru
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
     networks:
       - wowguild
+      - traefik-public
+
   backend:
     build:
       context: ./BACKEND/
       dockerfile: backend.Dockerfile
     image: yanlex-wow-guild-updater:latest
     container_name: "yanlex-wow-guild-updater"
-    volumes:
-      - ${HOME}/kvd:/root/kvd/
     environment:
       DB_NAME: kvd_guild
+      DB_USER: postgres
+      DB_PASS: 6iuJEswxv
+      DB_ADDRESS: yanlex-wow-guild-postgres
+      HOST_DB_PORT: 5432
       GUILD_REGION: eu
       GUILD_REALM: howling-fjord
       GUILD_NAME: "Ключик в дурку"
-      DB_USER: user-db
-      DB_PASS: user-pw
-      DB_NETWORK: wowguild
-      DB_ADDRESS: yanlex-wow-guild-postgres
-      HOST_DB_PORT: 5432
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`YOUR DOMAIN`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=leresolver"
-      - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.backend.tls.certresolver=le"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowmethods=GET,POST,OPTIONS,PUT,DELETE,PATCH"
+      - "traefik.http.middlewares.cors.headers.accessControlAllowOrigins=*"
+      - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=*"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowcredentials=true"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowheaders=Authorization,Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
+      - "traefik.http.routers.backend.middlewares=strip-api,cors-headers"
     networks:
       - wowguild
+      - traefik-public
 
 volumes:
-  yanlex-wow-guild-front-nginx:
-    name: yanlex-wow-guild-front-nginx
   yanlex-wow-guild-postgres:
     name: yanlex-wow-guild-postgres
-
 networks:
   wowguild:
-    driver: bridge
+    internal: true
+  traefik-public:
     external: true
-    name: wowguild
