@@ -81,13 +81,13 @@ services:
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=le"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
-      - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
+      # CORS middleware (исправленный):
       - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowmethods=GET,POST,OPTIONS,PUT,DELETE,PATCH"
-      - "traefik.http.middlewares.cors.headers.accessControlAllowOrigins=*"
-      - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=*"
-      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowcredentials=true"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolalloworigins=http://yanlex-wow-guild-front-nginx"
       - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowheaders=Authorization,Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
-      - "traefik.http.routers.backend.middlewares=strip-api,cors-headers"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowcredentials=true"
+      # Применяем только CORS:
+      - "traefik.http.routers.backend.middlewares=cors-headers"
     networks:
       - wowguild
       - traefik-public
