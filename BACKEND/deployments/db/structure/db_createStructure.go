@@ -78,12 +78,13 @@ func dbBuild() {
 		} else {
 			logger.Printf("БД: %s успешно создана", dbName)
 			log.Printf("БД: %s успешно создана\n", dbName)
-			createTable()
 		}
 	} else {
 		logger.Printf("БД: %s уже существует", dbName)
 		log.Printf("БД: %s уже существует\n", dbName)
 	}
+	createTable()
+
 }
 
 func createTable() {

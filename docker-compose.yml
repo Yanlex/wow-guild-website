@@ -66,6 +66,8 @@ services:
       dockerfile: backend.Dockerfile
     image: yanlex-wow-guild-updater:latest
     container_name: "yanlex-wow-guild-updater"
+    depends_on:
+      - postgres
     environment:
       DB_NAME: kvd_guild
       DB_USER: postgres

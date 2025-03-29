@@ -43,19 +43,11 @@ func init() {
 // var err error
 
 func main() {
-	timerDeploy := make(chan bool)
-
-	go func() {
-		time.Sleep(1 * time.Second)
-		timerDeploy <- true
-	}()
-
 	// Создаем канал для сигналов
 	signals := make(chan os.Signal, 1)
 	// Регистрируем канал для получения сигналов
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
-	<-timerDeploy
 	deploy.Deploy()
 	time.Sleep(2 * time.Second)
 	log.Println("Backend запущен")
