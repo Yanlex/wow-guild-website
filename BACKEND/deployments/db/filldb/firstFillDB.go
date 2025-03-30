@@ -8,7 +8,6 @@ import (
 	"fmt"
 	fetch "kvd/internal/api/raiderio"
 	"kvd/internal/db"
-	"kvd/internal/db/update"
 	"log"
 	"os"
 	"sync"
@@ -203,7 +202,6 @@ func fillPlayers(resp string, file *os.File, db *db.PostgreSQL, logger *log.Logg
 		defer log.Println("Похоже в БД уже есть данные об игроках, идем дальше.")
 	}
 	defer file.Close()
-	defer update.UpdateAllPlayers()
 }
 
 func insertObject(ctx context.Context, p Player, db *db.PostgreSQL) {

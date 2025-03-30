@@ -76,18 +76,18 @@ func UpdateAllPlayers() {
 
 	queryPlayersData := "SELECT rank, name, mythic_plus_scores_by_season, guild, realm, race, class, gender, faction, achievement_points, profile_url,thumbnail_url, profile_banner FROM members"
 	// Получаем из Базы данных таблицу members
-	rows, err := db.Query(ctx, queryPlayersData)
+	PlayerRowsDB, err := db.Query(ctx, queryPlayersData)
 	if err != nil {
 		log.Printf("Ошибка в запросе к БД: %v\n", err)
 	}
-	defer rows.Close()
+	defer PlayerRowsDB.Close()
 
 	// var dbPlayersAllInfoSlice []PlayerDB
 	dbPlayersAllInfoMap := make(map[string]PlayerDB)
 
-	for rows.Next() {
+	for PlayerRowsDB.Next() {
 		var player PlayerDB
-		if err := rows.Scan(
+		if err := PlayerRowsDB.Scan(
 			&player.rank,
 			&player.name,
 			&player.mythic_plus_scores_by_season,
@@ -107,20 +107,20 @@ func UpdateAllPlayers() {
 		// dbPlayersAllInfoSlice = append(dbPlayersAllInfoSlice, player)
 		dbPlayersAllInfoMap[player.name] = player
 
-		if err := rows.Err(); err != nil {
+		if err := PlayerRowsDB.Err(); err != nil {
 			log.Println(err)
 		}
 	}
 
 	// Получаем список ников из таблицы members
-	selectAllPlayers := `SELECT name FROM members;`
-	playerRows, err := db.Query(ctx, selectAllPlayers)
-	if err != nil {
-		log.Printf("Ошибка, Не могу получить список игроков: %v\n", err)
-	} else {
-		fmt.Println("Успешно получен список игроков из БД")
-	}
-	defer playerRows.Close()
+	// selectAllPlayers := `SELECT name FROM members;`
+	// playerNamesRows, err := db.Query(ctx, selectAllPlayers)
+	// if err != nil {
+	// 	log.Printf("Ошибка, Не могу получить список игроков: %v\n", err)
+	// } else {
+	// 	fmt.Println("Успешно получен список игроков из БД")
+	// }
+	// defer playerNamesRows.Close()
 
 	playerCh := make(chan apiPlayer)
 	go processGuildMembersJSON(playerCh)
