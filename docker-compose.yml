@@ -76,22 +76,22 @@ services:
       GUILD_REGION: eu
       GUILD_REALM: howling-fjord
       GUILD_NAME: "Ключик в дурку"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`sanyadev.ru`) && PathPrefix(`/api`)"
-      - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=le"
-      - "traefik.http.services.backend.loadbalancer.server.port=3000"
-      # CORS middleware (исправленный):
-      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowmethods=GET,POST,OPTIONS,PUT,DELETE,PATCH"
-      - "traefik.http.middlewares.cors-headers.headers.accesscontrolalloworigins=http://yanlex-wow-guild-front-nginx"
-      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowheaders=Authorization,Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
-      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowcredentials=true"
-      # Применяем только CORS:
-      - "traefik.http.routers.backend.middlewares=cors-headers"
+    expose:
+      - 3000
     networks:
       - wowguild
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.tls.certresolver=le"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
+        # CORS
+      - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,POST,OPTIONS,PUT,DELETE,PATCH"
+      - "traefik.http.middlewares.cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.cors.headers.accesscontrolalloworiginlist=http://yanlex-wow-guild-front-nginx"
+      - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.cors.headers.addvaryheader=true"
 
 volumes:
   yanlex-wow-guild-postgres:

@@ -43,6 +43,12 @@ func init() {
 // var err error
 
 func main() {
+	go a.Api()
+	go func() {
+		time.Sleep(10 * time.Minute)
+		update.UpdateAllPlayers()
+		time.Sleep(12 * time.Hour)
+	}()
 	// Создаем канал для сигналов
 	signals := make(chan os.Signal, 1)
 	// Регистрируем канал для получения сигналов
@@ -52,12 +58,6 @@ func main() {
 	time.Sleep(2 * time.Second)
 	log.Println("Backend запущен")
 	time.Sleep(2 * time.Second)
-	go a.Api()
-	go func() {
-		time.Sleep(10 * time.Minute)
-		update.UpdateAllPlayers()
-		time.Sleep(12 * time.Hour)
-	}()
 	// Блокируемся до получения сигнала
 	sig := <-signals
 	fmt.Println("Получен сигнал, закрываем программу:", sig)
