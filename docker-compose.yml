@@ -6,7 +6,7 @@ services:
       - yanlex-wow-guild-postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 6iuJEswxv
+      POSTGRES_PASSWORD: 6iuJEsw6iuJEswxv
       POSTGRES_DB: kvd_guild
     expose:
       - 5432
@@ -48,16 +48,36 @@ services:
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     command:
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.le.acme.email=takashi21@yandex.ru
-      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      # Дашборд
+      - "--api=true"
+      - "--api.insecure=false"
+      #Logs
+      - "--log.level=DEBUG"
+      #
+      - "--providers.docker=true"
+      - "--providers.docker.network=traefik-public"
+      - "--providers.docker.exposedbydefault=false"
+      # Точки входа
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      #Редирект трафика на https
+      - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
+      # SSL
+      - "--certificatesresolvers.le.acme.email=takashi21@yandex.ru"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
     networks:
-      - wowguild
       - traefik-public
+      - wowguild
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.sanyadev.ru`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=yanlex:$$2y$$05$$Bv.yC2MtGc.aex8qwF/O3uCeihnu6l0C90Zk0z4YDKaGpHTUTkCCm"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=le"
 
   backend:
     build:
@@ -70,7 +90,7 @@ services:
     environment:
       DB_NAME: kvd_guild
       DB_USER: postgres
-      DB_PASS: 6iuJEswxv
+      DB_PASS: 6iuJEsw6iuJEswxv
       DB_ADDRESS: yanlex-wow-guild-postgres
       HOST_DB_PORT: 5432
       GUILD_REGION: eu
@@ -83,15 +103,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.tls.certresolver=le"
-      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
-        # CORS
-      - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,POST,OPTIONS,PUT,DELETE,PATCH"
-      - "traefik.http.middlewares.cors.headers.accesscontrolallowheaders=*"
-      - "traefik.http.middlewares.cors.headers.accesscontrolalloworiginlist=http://yanlex-wow-guild-front-nginx"
-      - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.cors.headers.addvaryheader=true"
 
 volumes:
   yanlex-wow-guild-postgres:
