@@ -1,43 +1,4 @@
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: "yanlex-wow-guild-postgres"
-    volumes:
-      - yanlex-wow-guild-postgres:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 6iuJEsw6iuJEswxv
-      POSTGRES_DB: kvd_guild
-    expose:
-      - 5432
-    networks:
-      - wowguild
-
-  adminer:
-    image: adminer
-    container_name: "yanlex-wow-guild-adminer"
-    networks:
-      - wowguild
-      - traefik-public
-    ports:
-      - 8080:8080
-
-  frontend:
-    image: nginx:1.25-alpine
-    container_name: "yanlex-wow-guild-front-nginx"
-    volumes:
-      - ./FRONTEND/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./FRONTEND/nginx/index.html:/var/www/dist/index.html
-      - ./FRONTEND/public_html:/var/www/dist/kvd
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`sanyadev.ru`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=le"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
-    networks:
-      - wowguild
-
   traefik:
     image: traefik:v3.3
     container_name: traefik
@@ -79,6 +40,35 @@ services:
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.tls.certresolver=le"
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: "yanlex-wow-guild-postgres"
+    volumes:
+      - yanlex-wow-guild-postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 6iuJEsw6iuJEswxv
+      POSTGRES_DB: kvd_guild
+    expose:
+      - 5432
+    networks:
+      - wowguild
+
+  frontend:
+    image: nginx:1.25-alpine
+    container_name: "yanlex-wow-guild-front-nginx"
+    volumes:
+      - ./FRONTEND/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./FRONTEND/public_html:/var/www/dist
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`kvd.sanyadev.ru`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=le"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - wowguild
+
   backend:
     build:
       context: ./BACKEND/
@@ -105,6 +95,15 @@ services:
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
+
+  adminer:
+    image: adminer
+    container_name: "yanlex-wow-guild-adminer"
+    networks:
+      - wowguild
+      - traefik-public
+    ports:
+      - 8080:8080
 
 volumes:
   yanlex-wow-guild-postgres:
